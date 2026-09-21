@@ -16,7 +16,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/api', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/ong/dashboard', dashboardRoutes);
-app.use('api/ong/donations', donationRoutes);
+app.use('/api/ong/donations', donationRoutes);
 
 app.get('/', (req, res) => {
   res.send('Jacaridade API is running');

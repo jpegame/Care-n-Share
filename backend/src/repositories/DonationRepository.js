@@ -1,6 +1,28 @@
 import prisma from '../config/database.js';
 
 class DonationRepository {
+  async create(data) {
+    return await prisma.donation.create({
+      data,
+      include: {
+        donor: { select: { id: true, name: true, email: true } },
+        ong: { select: { id: true, name: true, email: true } },
+        goal: { select: { id: true, title: true } }
+      }
+    });
+  }
+
+  async update(id, data) {
+    return await prisma.donation.update({
+      where: { id },
+      data,
+      include: {
+        donor: { select: { id: true, name: true, email: true } },
+        goal: { select: { id: true, title: true } }
+      }
+    });
+  }
+
   async findAllByOng({ ongId, search, status, contributionType }) {
     const where = {
       ongId,
@@ -13,7 +35,7 @@ class DonationRepository {
       })
     };
 
-    return await prisma.doacao.findMany({
+    return await prisma.donation.findMany({
       where,
       include: {
         donor: {
@@ -28,14 +50,14 @@ class DonationRepository {
   }
 
   async findById(id, ongId) {
-    return await prisma.doacao.findFirst({
+    return await prisma.donation.findFirst({
       where: { id, ongId },
       include: {
         donor: {
-          select: { id: true, nome: true }
+          select: { id: true, name: true }
         },
-        meta: {
-          select: { id: true, titulo: true }
+        goal: {
+          select: { id: true, title: true }
         }
       }
     });
@@ -75,12 +97,18 @@ class DonationRepository {
   }
 
   async cancelDonation(id, reason) {
-    return await prisma.doacao.update({
+    return await prisma.donation.update({
       where: { id },
       data: {
         status: 'CANCELADA',
-        motivoCancelamento: reason
+        cancelReason: reason
       }
+    });
+  }
+
+  async delete(id) {
+    return await prisma.donation.delete({
+      where: { id }
     });
   }
 }

@@ -2,18 +2,18 @@ import prisma from '../config/database.js';
 
 class DashboardRepository {
   async getSummary(ongId) {
-    const totalDonations = await prisma.doacao.count({ where: { ongId } });
-    const pendingDonations = await prisma.doacao.count({ where: { ongId, status: 'PENDENTE' } });
-    const completedDonations = await prisma.doacao.count({ where: { ongId, status: 'CONCLUIDA' } });
-    const activeGoals = await prisma.meta.count({ where: { ongId, status: 'ATIVA' } });
+    const totalDonations = await prisma.donation.count({ where: { ongId } });
+    const pendingDonations = await prisma.donation.count({ where: { ongId, status: 'PENDENTE' } });
+    const completedDonations = await prisma.donation.count({ where: { ongId, status: 'CONCLUIDA' } });
+    const activeGoals = await prisma.goal.count({ where: { ongId, status: 'ATIVA' } });
 
     return { totalDonations, pendingDonations, completedDonations, activeGoals };
   }
 
   async getDonationStats(ongId) {
-    const total = await prisma.doacao.count({ where: { ongId } });
-    const completed = await prisma.doacao.count({ where: { ongId, status: 'CONCLUIDA' } });
-    const pending = await prisma.doacao.count({ where: { ongId, status: 'PENDENTE' } });
+    const total = await prisma.donation.count({ where: { ongId } });
+    const completed = await prisma.donation.count({ where: { ongId, status: 'CONCLUIDA' } });
+    const pending = await prisma.donation.count({ where: { ongId, status: 'PENDENTE' } });
 
     const byMonth = await prisma.$queryRaw`
       SELECT 
@@ -29,7 +29,7 @@ class DashboardRepository {
   }
 
   async getGoalsProgress(ongId) {
-    const goals = await prisma.meta.findMany({
+    const goals = await prisma.goal.findMany({
       where: { ongId },
       select: {
         id: true,
@@ -49,11 +49,11 @@ class DashboardRepository {
   }
 
   async getVolunteerStats(ongId) {
-    const totalVolunteers = await prisma.doacao.count({
+    const totalVolunteers = await prisma.donation.count({
       where: { ongId, contributionType: 'VOLUNTARIADO' }
     });
 
-    const aggregateHours = await prisma.doacao.aggregate({
+    const aggregateHours = await prisma.donation.aggregate({
       where: { ongId, contributionType: 'VOLUNTARIADO', status: 'CONCLUIDA' },
       _sum: { quantidade: true }
     });
@@ -66,7 +66,7 @@ class DashboardRepository {
   }
 
   async getRecentActivity(ongId) {
-    return await prisma.atividade.findMany({
+    return await prisma.activity.findMany({
       where: { ongId },
       take: 10,
       orderBy: { createdAt: 'desc' }

@@ -9,6 +9,9 @@ router.use(authMiddleware, authorizeRoles('O'));
 
 router.get('/', donationController.getAll);
 router.get('/:id', donationController.getById);
+router.post('/', donationController.create);
+router.put('/:id', donationController.update);
+router.delete('/:id', donationController.delete);
 router.patch('/:id/complete', donationController.complete);
 router.patch('/:id/cancel', donationController.cancel);
 
