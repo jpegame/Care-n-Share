@@ -3,7 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DonationStatus {
+  PENDENTE
+  CONCLUIDA
+  CANCELADA
+}
+
+enum ContributionType {
+  ITEM
+  VOLUNTARIADO
+  MONETARIA
 }
 
 model User {
@@ -13,16 +26,22 @@ model User {
   profilePicture String?
   description    String?
   passwordHash   String
-  type           String   // "U" (User) or "O" (ONG)
+  type           String   // "U" (User/Doador) ou "O" (ONG)
   pixKey         String?
   tokenVersion   Int      @default(0)
   createdAt      DateTime @default(now())
-  
 
-  supportedOngs  User[]   @relation("SupportRelation")
-  supporters     User[]   @relation("SupportRelation")
+  // Relacionamentos Sociais Existentes
+  supportedOngs User[] @relation("SupportRelation")
+  supporters    User[] @relation("SupportRelation")
 
-  posts          Post[]   @relation("UserPosts")
+  // Relacionamentos do Sistema
+  posts             Post[]         @relation("UserPosts")
+  goals             Goal[]         @relation("OngGoals")
+  donationsMade     Donation[]     @relation("DonorDonations")
+  donationsReceived Donation[]     @relation("OngDonations")
+  notifications     Notification[]
+  activities        Activity[]
 }
 
 model Post {
@@ -31,7 +50,66 @@ model Post {
   content   String
   image     String?
   createdAt DateTime @default(now())
-  
-  ongId     String
-  ong       User     @relation("UserPosts", fields: [ongId], references: [id])
+
+  ongId String
+  ong   User   @relation("UserPosts", fields: [ongId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id              String     @id @default(uuid())
+  title           String
+  description     String?
+  image           String?
+  targetQuantity  Float
+  currentQuantity Float      @default(0)
+  deadline        DateTime?
+  status          String     @default("ATIVA")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  ongId String
+  ong   User       @relation("OngGoals", fields: [ongId], references: [id], onDelete: Cascade)
+  donations Donation[]
+}
+
+model Donation {
+  id               String           @id @default(uuid())
+  quantity         Float
+  contributionType ContributionType @default(ITEM)
+  status           DonationStatus   @default(PENDENTE)
+  description      String?
+  cancelReason     String?
+  completedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  donorId String
+  donor   User   @relation("DonorDonations", fields: [donorId], references: [id])
+
+  ongId String
+  ong   User   @relation("OngDonations", fields: [ongId], references: [id])
+
+  goalId String?
+  goal   Goal?   @relation(fields: [goalId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+
+  ongId String
+  ong   User   @relation(fields: [ongId], references: [id], onDelete: Cascade)
 }

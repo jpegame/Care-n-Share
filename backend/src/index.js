@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import donationRoutes from './routes/donationRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -13,6 +15,8 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use('/api', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/ong/dashboard', dashboardRoutes);
+app.use('api/ong/donations', donationRoutes);
 
 app.get('/', (req, res) => {
   res.send('Jacaridade API is running');
